@@ -1,13 +1,20 @@
-ReadPkPdData <- function(file.name) { 
-  temp.data <- read.csv(file.name,na.strings=".")
+ReadData <- function(file.path) { 
+  # Reads the file chosen by the user
+  # Args:
+  #   file.path: The path of the file the user chooses
+  #
+  # Returns:
+  #   returns a data frame with all column names in uppercase and 
+  
+  temp.data <- read.csv(file.path, na.strings = ".")
   colnames(temp.data) <- toupper(colnames(temp.data))
   return(temp.data)
 }
 
-DrawScatterPlot <- function(orig.data, X.name, Y.name, ID.name, x.lim, y.lim) {  
-  X.t <- orig.data[, X.name]
-  Y.t <- orig.data[, Y.name]
-  ID.t <- orig.data[, ID.name]
+DrawScatterPlot <- function(the.data, X.name, Y.name, ID.name, x.lim, y.lim) {  
+  X.t <- the.data[, X.name]
+  Y.t <- the.data[, Y.name]
+  ID.t <- the.data[, ID.name]
   new.data <- data.frame(X.t = X.t, Y.t = Y.t, ID.t = ID.t)
   
   print(head(new.data))
@@ -20,9 +27,40 @@ DrawScatterPlot <- function(orig.data, X.name, Y.name, ID.name, x.lim, y.lim) {
     ggvis(~X.t, ~Y.t) %>%
     #     layer_points(fill := lb$fill, fill.brush := "red", size.brush := 400, size := input_slider(10, 400), 
     #                  opacity := input_slider(0, 1)) %>%
+    add_axis("x", title = X.name) %>%
+    add_axis("y", title = Y.name) %>%
     layer_points(fill := lb$fill, fill.brush := "red") %>%
     lb$input()  %>%
     layer_points(fill := "red", data = reactive(new.data[new.data$ID.t %in% new.data[lb$selected(),]$ID.t, ])) %>%
     #    bind_shiny("visplot1", "slider_ui")
-    bind_shiny("ggvisplot")
-}   
+    bind_shiny("ggp")
+}
+
+DrawScatterPlotWithCovar <- function(the.data, X.name, Y.name, ID.name, x.lim, y.lim, 
+                                     COV.name){
+  X <- the.data[, X.name]
+  Y <- the.data[, Y.name]
+  ID <- the.data[, ID.name]
+  COV <- the.data[, COV.name]
+  new.data <- data.frame(X = X, Y = Y, ID = ID, COV = COV)
+  
+  print(head(new.data))
+  print(nrow(new.data))
+  
+  new.data$id <- seq_len(nrow(new.data))
+  lb <- linked_brush(keys = new.data$id, "red")
+  
+  print("Hello with COV")
+  new.data %>%
+    ggvis(~X, ~Y) %>%
+    #     layer_points(fill := lb$fill, fill.brush := "red", size.brush := 400, size := input_slider(10, 400), 
+    #                  opacity := input_slider(0, 1)) %>%
+    add_axis("x", title = X.name) %>%
+    add_axis("y", title = Y.name) %>%
+    layer_points(fill := lb$fill, fill.brush := "red") %>%
+    lb$input()  %>%
+    layer_points(fill := "red", data = reactive(new.data[new.data$ID %in% new.data[lb$selected(),]$ID, ])) %>%
+    #    bind_shiny("visplot1", "slider_ui")
+    bind_shiny("ggp")
+  
+}

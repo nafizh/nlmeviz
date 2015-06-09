@@ -2,95 +2,150 @@ library(shiny)
 library(ggvis)
 source("helper_functions.R")
 
-shinyServer(function(input, output) {
-  orig.data<<-NULL
+shinyServer(function(input, output, session) {
+  # server logic to create all the widgets and functionality of the app
   
-  output$read_Origfile <- renderUI({
-    fileInput("origfile", label = "Read data file", accept =c ('.csv', '.txt', '.sim', '.dat'))    
+  the.data <<- NULL
+  
+  output$read_file <- renderUI({
+    # unnamed function to create 'Read the.data file' widget
+    # Args:
+    #   Takes no arguments
+    #
+    # Returns:
+    #   No explicit return. R automatically updates the list like object 'output'
+    
+    # function to create file upload control wizard
+    fileInput("the.file", label = "Read the data file", accept = c ('.csv', '.txt', '.sim', '.dat'))    
   })
   
   output$choose_Xvar <- renderUI({
-    if (is.null(input$origfile))
+    # unnamed function to create 'Choose X variable' widget
+    # Args:
+    #   Takes no arguments
+    #
+    # Returns:
+    #   No explicit return. R automatically updates the list like object 'output'
+    
+    if (is.null(input$the.file))
       return()
     
-    orig.data.name <- paste(input$origfile$datapath, input$origfile$name, sep="/") 
-    orig.data <<- ReadPkPdData(input$origfile$datapath)   
-    colnames <- colnames(orig.data)
-    selectInput("Xvar", "Choose X variable", choices = c(" ", colnames))
+    # Call the ReadData method to read the field
+    the.data <<- ReadData(input$the.file$datapath)
+    column.names <- colnames(the.data)
+
+    # built in function to create a box with choices to select from
+    selectInput("Xvar", "Choose X variable", choices = c(" ", column.names))
   })
   
   output$choose_Yvar <- renderUI({
-    if (is.null(input$origfile))
+    # unnamed function to create 'Choose Y variable' widget
+    # Args:
+    #   Takes no arguments
+    #
+    # Returns:
+    #   No explicit return. R automatically updates the list like object 'output'
+    
+    if (is.null(input$the.file))
       return()
-    if (is.null(input$origfile) | is.null(orig.data)) { 
+    if (is.null(the.data)) { 
       choice.temp <- c(" ", " ")
     } else { 
-      choice.temp <- c(" ", colnames(orig.data))
+      choice.temp <- c(" ", colnames(the.data))
     }
-    selectInput("Yvar", "Choose Y variable", choices = choice.temp )
+    # built in function to create a box with choices to select from
+    selectInput("Yvar", "Choose Y variable", choices = choice.temp)
   })
   
   output$choose_IDvar <- renderUI({
-    if (is.null(input$origfile))
+    # unnamed function to create 'Choose ID variable' widget
+    # Args:
+    #   Takes no arguments
+    #
+    # Returns:
+    #   No explicit return. R automatically updates the list like object 'output'
+    
+    if (is.null(input$the.file))
       return()
-    if (is.null(input$origfile) | is.null(orig.data)) { 
+    if (is.null(the.data)) { 
       choice.temp <- c(" ", " ")
     } else { 
-      choice.temp <- c(" ", colnames(orig.data))
+      choice.temp <- c(" ", colnames(the.data))
     } 
+    # built in function to create a box with choices to select from
     selectInput("IDvar", "Choose ID variable", choices = choice.temp )
   })
   
   output$choose_COVvar <- renderUI({
-    if (is.null(input$origfile)) {
+    # unnamed function to create 'Choose Covariate for stratification' widget
+    # Args:
+    #   Takes no arguments
+    #
+    # Returns:
+    #   No explicit return. R automatically updates the list like object 'output'
+    
+    if (is.null(input$the.file))
       return()
-    }
-    if (is.null(input$origfile) | is.null(orig.data)) { 
+    if (is.null(the.data)) { 
       choice.temp <- c(" ", " ")
     } else { 
-      choice.temp <- c(" ", colnames(orig.data))
+      choice.temp <- c(" ", colnames(the.data))
     }    
-    selectInput("COVvar", "Choose Covariate for stratification", choices  = choice.temp )
+    # built in function to create a box with choices to select from
+    selectInput("COVvar", "Choose Covariate for stratification", choices  = choice.temp)
   })
   
   output$choose_COVn <- renderUI({
-    if (is.null(input$origfile) | is.null(orig.data)) { 
+    # unnamed function to create 'Number of COV stratification' widget
+    # Args:
+    #   Takes no arguments
+    #
+    # Returns:
+    #   No explicit return. R automatically updates the list like object 'output'
+    
+    if(is.null(input$the.file) | is.null(the.data)) { 
       return()
-    } else if (is.null(input$COVvar)) { 
+    } else if(is.null(input$COVvar)) { 
       return()
-    } else if (input$COVvar==" ") {  
+    } else if(input$COVvar==" ") {  
       return()
-    } 
-    numericInput("COVn", "Number of COV stratification", 1)
+    }
+    # built in function to create a field to enter numbers
+    numericInput("cov.num", "Number of COV stratification", 1)
   })
   
   
   
   output$plot<-renderPlot({    
-    if (is.null(input$origfile)| is.null(orig.data) | is.null(input$Xvar)
-        | is.null(input$Yvar)| is.null(input$IDvar) | is.null(input$COVvar)) {
+    if (is.null(input$the.file) | is.null(the.data) | is.null(input$Xvar)
+        | is.null(input$Yvar) | is.null(input$IDvar) | is.null(input$COVvar)) {
       return()
     } else if (input$Xvar==" " | input$Yvar==" " | input$IDvar==" ") {
       return()
     } else  {
       X.name <- input$Xvar
       Y.name <- input$Yvar
-      x.lim <- range(orig.data[, input$Xvar], na.rm=TRUE)
-      y.lim<-range(orig.data[, input$Yvar], na.rm=TRUE)
-      if (input$COVvar == " " | is.null(input$COVn)) {   
-        print(input$PlotMethod)            
+      x.lim <- range(the.data[, input$Xvar], na.rm=TRUE)
+      y.lim<-range(the.data[, input$Yvar], na.rm=TRUE)
+      if (input$COVvar == " " | is.null(input$cov.num)) {   
+      #  print(input$PlotMethod)            
         if (input$PlotMethod == "XY Scatter plot") {  
-          DrawScatterPlot(orig.data, input$Xvar, input$Yvar, input$IDvar, x.lim, y.lim)
+          print("Hello")
+          DrawScatterPlot(the.data, input$Xvar, input$Yvar, input$IDvar, x.lim, y.lim)
         } else if (input$PlotMethod == "profile plot") {  
           
         }  
-      } else if (input$COVn == 0) {
+      } else if (input$cov.num == 0) {
         if (input$PlotMethod == "XY Scatter plot") {  
-          DrawScatterPlot(orig.data, input$Xvar, input$Yvar, input$IDvar, x.lim, y.lim)
+          DrawScatterPlot(the.data, input$Xvar, input$Yvar, input$IDvar, x.lim, y.lim)
         } else if (input$PlotMethod == "profile plot") {  
           
         }               
       } else { 
+        if (input$PlotMethod == "XY Scatter plot") {
+          print("Enter Covar")
+          DrawScatterPlotWithCovar(the.data, input$Xvar, input$Yvar, input$IDvar, x.lim, y.lim, input$COVvar)
+        }
         
       }
     }

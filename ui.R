@@ -1,10 +1,11 @@
 library(ggvis)
+source("helper_functions.R")
 
 shinyUI(fluidPage(
   headerPanel("Prototype 1"),
   
   sidebarPanel(
-    uiOutput("read_Origfile"),
+    uiOutput("read_file"),
     br(),
     uiOutput("choose_Xvar"),
     uiOutput("choose_Yvar"),
@@ -15,11 +16,13 @@ shinyUI(fluidPage(
   ),
   
   sidebarPanel(
-    radioButtons("PlotMethod",label=h4("Plot type"),c("XY Scatter plot","profile plot"))
+    radioButtons("PlotMethod", label=h4("Plot type"),c("XY Scatter plot","profile plot"))
   ),
   
   mainPanel(
-    plotOutput("plot"),
-    ggvisOutput("ggvisplot")
+    ggvisOutput("ggp"),
+    plotOutput("plot")
+    
+    
   )
 ))

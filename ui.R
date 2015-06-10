@@ -20,9 +20,10 @@ shinyUI(fluidPage(
   ),
   
   mainPanel(
-    ggvisOutput("ggp"),
-    plotOutput("plot")
-    
-    
+#     ggvisOutput("ggp"),
+# #  ggvisOutput("ggp1"),
+#     plotOutput("plot")
+      htmlOutput("plot"),
+      htmlOutput("plot1")  
   )
 ))

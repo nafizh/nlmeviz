@@ -116,7 +116,7 @@ shinyServer(function(input, output, session) {
   
   
   
-  output$plot<-renderPlot({    
+  output$plot<-renderUI({    
     if (is.null(input$the.file) | is.null(the.data) | is.null(input$Xvar)
         | is.null(input$Yvar) | is.null(input$IDvar) | is.null(input$COVvar)) {
       return()
@@ -127,11 +127,12 @@ shinyServer(function(input, output, session) {
       Y.name <- input$Yvar
       x.lim <- range(the.data[, input$Xvar], na.rm=TRUE)
       y.lim<-range(the.data[, input$Yvar], na.rm=TRUE)
-      if (input$COVvar == " " | is.null(input$cov.num)) {   
+      if (input$COVvar == " ") {   
       #  print(input$PlotMethod)            
         if (input$PlotMethod == "XY Scatter plot") {  
           print("Hello")
           DrawScatterPlot(the.data, input$Xvar, input$Yvar, input$IDvar, x.lim, y.lim)
+          ggvisOutput("ggvisplot")
         } else if (input$PlotMethod == "profile plot") {  
           
         }  
@@ -145,9 +146,16 @@ shinyServer(function(input, output, session) {
         if (input$PlotMethod == "XY Scatter plot") {
           print("Enter Covar")
           DrawScatterPlotWithCovar(the.data, input$Xvar, input$Yvar, input$IDvar, x.lim, y.lim, input$COVvar)
+          ggvisOutput("ggvisplot1")
+      #    ggvisOutput("ggvisplot_cov")
         }
         
       }
     }
   })
+  
+  output$plot1<-renderUI({ 
+    ggvisOutput("ggvisplot_cov")
+  })
+
 })

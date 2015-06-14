@@ -61,9 +61,20 @@ DrawScatterPlotWithCovar <- function(the.data, X.name, Y.name, ID.name, x.lim, y
     lb$input()  %>%
     layer_points(fill := "red", data = reactive(new.data[new.data$ID %in% new.data[lb$selected(),]$ID, ])) %>%
     #    bind_shiny("visplot1", "slider_ui")
+    set_options(width = 400, height = 300) %>%
     bind_shiny("ggvisplot1")
   
+  selected <- lb$selected
+  new.data.selected <- reactive({
+    new.data[selected(), ]
+  })
+  
   new.data %>% 
-    ggvis(~COV) %>% layer_histograms() %>% bind_shiny("ggvisplot_cov")
+    ggvis(~COV) %>% layer_histograms() %>% 
+    add_data(new.data.selected) %>%
+    layer_histograms(fill := "#dd3333") %>%
+    set_options(width = 400, height = 300) %>%
+    bind_shiny("ggvisplot_cov") 
+    
   
 }

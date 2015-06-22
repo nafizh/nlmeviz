@@ -20,19 +20,18 @@ DrawScatterPlot <- function(the.data, X.name, Y.name, ID.name, x.lim, y.lim) {
   print(head(new.data))
   print(nrow(new.data))
   
-  new.data$id <- seq_len(nrow(new.data))
-  lb <- linked_brush(keys = new.data$id, "red")
+  lb <- linked_brush(keys = 1:nrow(new.data), "red")
   
   new.data %>%
     ggvis(~X.t, ~Y.t) %>%
-    #     layer_points(fill := lb$fill, fill.brush := "red", size.brush := 400, size := input_slider(10, 400), 
-    #                  opacity := input_slider(0, 1)) %>%
     add_axis("x", title = X.name) %>%
     add_axis("y", title = Y.name) %>%
-    layer_points(fill := lb$fill, fill.brush := "red") %>%
+    layer_points(fill := lb$fill, fill.brush := "red") %>% # to make the selected point red
     lb$input()  %>%
-    layer_points(fill := "red", data = reactive(new.data[new.data$ID.t %in% new.data[lb$selected(),]$ID.t, ])) %>%
-    #    bind_shiny("visplot1", "slider_ui")
+    # to make the other points with the same id red
+    layer_points(fill := "red", data = reactive(new.data[new.data$ID.t %in%
+                                                           new.data[lb$selected(), ]$ID.t, ])) %>%
+    set_options(width = 400, height = 300) %>%
     bind_shiny("ggvisplot")
 }
 
@@ -74,7 +73,32 @@ DrawScatterPlotWithCovar <- function(the.data, X.name, Y.name, ID.name, x.lim, y
     add_data(new.data.selected) %>%
     layer_histograms(fill := "#dd3333") %>%
     set_options(width = 400, height = 300) %>%
+    add_axis("x", title = COV.name) %>%
     bind_shiny("ggvisplot_cov") 
-    
+}
+
+DrawProfilePlot <- function(the.data, X.name, Y.name, ID.name, x.lim, y.lim){
+  X.t <- the.data[, X.name]
+  Y.t <- the.data[, Y.name]
+  ID.t <- the.data[, ID.name]
+  new.data <- data.frame(X.t = X.t, Y.t = Y.t, ID.t = ID.t)
   
+  print(head(new.data))
+  print(nrow(new.data))
+
+  lb <- linked_brush(keys = 1:nrow(new.data), "red")
+  
+  new.data %>%
+    ggvis(~X.t, ~Y.t) %>%
+    add_axis("x", title = X.name) %>%
+    add_axis("y", title = Y.name) %>%
+    layer_points(fill := lb$fill, fill.brush := "red") %>%
+    group_by(ID.t) %>%
+    layer_lines() %>%
+    lb$input()  %>%
+    layer_points(fill := "red", data = reactive(new.data[new.data$ID.t %in% 
+                                                              new.data[lb$selected(), ]$ID.t, ])) %>%
+    layer_lines() %>%
+    set_options(width = 400, height = 300) %>%
+    bind_shiny("ggvisProfilePlot")
 }

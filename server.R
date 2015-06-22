@@ -9,6 +9,7 @@ shinyServer(function(input, output, session) {
   
   output$read_file <- renderUI({
     # unnamed function to create 'Read the.data file' widget
+    #
     # Args:
     #   Takes no arguments
     #
@@ -21,6 +22,7 @@ shinyServer(function(input, output, session) {
   
   output$choose_Xvar <- renderUI({
     # unnamed function to create 'Choose X variable' widget
+    #
     # Args:
     #   Takes no arguments
     #
@@ -40,6 +42,7 @@ shinyServer(function(input, output, session) {
   
   output$choose_Yvar <- renderUI({
     # unnamed function to create 'Choose Y variable' widget
+    #
     # Args:
     #   Takes no arguments
     #
@@ -59,6 +62,7 @@ shinyServer(function(input, output, session) {
   
   output$choose_IDvar <- renderUI({
     # unnamed function to create 'Choose ID variable' widget
+    #
     # Args:
     #   Takes no arguments
     #
@@ -78,6 +82,7 @@ shinyServer(function(input, output, session) {
   
   output$choose_COVvar <- renderUI({
     # unnamed function to create 'Choose Covariate for stratification' widget
+    #
     # Args:
     #   Takes no arguments
     #
@@ -97,6 +102,7 @@ shinyServer(function(input, output, session) {
   
   output$choose_COVn <- renderUI({
     # unnamed function to create 'Number of COV stratification' widget
+    #
     # Args:
     #   Takes no arguments
     #
@@ -115,7 +121,6 @@ shinyServer(function(input, output, session) {
   })
   
   
-  
   output$plot<-renderUI({    
     if (is.null(input$the.file) | is.null(the.data) | is.null(input$Xvar)
         | is.null(input$Yvar) | is.null(input$IDvar) | is.null(input$COVvar)) {
@@ -125,8 +130,9 @@ shinyServer(function(input, output, session) {
     } else  {
       X.name <- input$Xvar
       Y.name <- input$Yvar
-      x.lim <- range(the.data[, input$Xvar], na.rm=TRUE)
-      y.lim<-range(the.data[, input$Yvar], na.rm=TRUE)
+      x.lim <- range(the.data[, input$Xvar], na.rm = TRUE)
+      y.lim <- range(the.data[, input$Yvar], na.rm = TRUE)
+      
       if (input$COVvar == " ") {   
       #  print(input$PlotMethod)            
         if (input$PlotMethod == "XY Scatter plot") {  
@@ -134,7 +140,8 @@ shinyServer(function(input, output, session) {
           DrawScatterPlot(the.data, input$Xvar, input$Yvar, input$IDvar, x.lim, y.lim)
           ggvisOutput("ggvisplot")
         } else if (input$PlotMethod == "profile plot") {  
-          
+          DrawProfilePlot(the.data, input$Xvar, input$Yvar, input$IDvar, x.lim, y.lim)
+          ggvisOutput("ggvisProfilePlot")
         }  
       } else if (input$cov.num == 0) {
         if (input$PlotMethod == "XY Scatter plot") {  

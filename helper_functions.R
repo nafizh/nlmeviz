@@ -88,6 +88,12 @@ DrawProfilePlot <- function(the.data, X.name, Y.name, ID.name, x.lim, y.lim){
 
   lb <- linked_brush(keys = 1:nrow(new.data), "red")
   
+  selected <- lb$selected
+  new.data.selected <- reactive({
+    #    if (!any(selected())) return(layer_lines())
+    new.data[new.data$ID.t %in% new.data[lb$selected(), ]$ID.t, ]
+  })
+  
   new.data %>%
     ggvis(~X.t, ~Y.t) %>%
     add_axis("x", title = X.name) %>%
@@ -96,9 +102,9 @@ DrawProfilePlot <- function(the.data, X.name, Y.name, ID.name, x.lim, y.lim){
     group_by(ID.t) %>%
     layer_lines() %>%
     lb$input()  %>%
-    layer_points(fill := "red", data = reactive(new.data[new.data$ID.t %in% 
-                                                              new.data[lb$selected(), ]$ID.t, ])) %>%
-    layer_lines() %>%
+    add_data(new.data.selected) %>%
+    layer_points(fill := "red") %>%
+    layer_lines(stroke := "red") %>%
     set_options(width = 400, height = 300) %>%
     bind_shiny("ggvisProfilePlot")
 }

@@ -7,7 +7,7 @@ ReadData <- function(file.path) {
   #   returns a data frame with all column names in uppercase and 
   
   temp.data <- read.csv(file.path, na.strings = ".")
-  colnames(temp.data) <- toupper(colnames(temp.data))
+  colnames(temp.data) <- (colnames(temp.data))
   return(temp.data)
 }
 

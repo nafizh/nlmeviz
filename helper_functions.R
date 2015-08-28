@@ -12,6 +12,7 @@ ReadData <- function(file.path) {
 }
 
 DrawScatterPlot <- function(the.data, X.name, Y.name, ID.name, x.lim, y.lim) {  
+  print("beginning of scatter plot")
   X.t <- the.data[, X.name]
   Y.t <- the.data[, Y.name]
   ID.t <- the.data[, ID.name]
@@ -32,7 +33,9 @@ DrawScatterPlot <- function(the.data, X.name, Y.name, ID.name, x.lim, y.lim) {
     layer_points(fill := "red", data = reactive(new.data[new.data$ID.t %in%
                                                            new.data[lb$selected(), ]$ID.t, ])) %>%
     set_options(width = 400, height = 300) %>%
-    bind_shiny("ggvisplot")
+    bind_shiny("ggvis_xy_plot")
+  print("end of scatter plot")
+
 }
 
 DrawScatterPlotWithCovar <- function(the.data, X.name, Y.name, ID.name, x.lim, y.lim, 

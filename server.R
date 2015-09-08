@@ -10,181 +10,145 @@ shinyServer(function(input, output, session) {
   # server logic to create all the widgets and functionality of the app
   
   my.env <<- new.env()
+  
+  theData <- reactive({
+    infile <- input$the.file        
+    if (is.null(infile)) {
+      the.data <<- Theoph
+      return(NULL)
+    }
+    dat <- read.csv(infile$datapath, header = T)
+    the.data <<- read.csv(infile$datapath, header = T)
+    dat        
+  })
 
-obs <-   observe({
-    if (is.null(input$the.file)){
-      print("why here")
-      the.data <- ReadData("/Users/Nafiz/Dropbox/Google_Summer_of_Code_2015/nlmeviz/Orthodont.csv")
-    } else {
-      print("Flaggggg")
-    # Call the ReadData method to read the field
-      the.data <<- ReadData(input$the.file$datapath)
-      s_options <- list()
-      s_options <- colnames(the.data)
-      
-    updateSelectInput(session, "Xvar",
-                      choices = s_options,
-                      selected = s_options[[2]]
-    )
-    updateSelectInput(session, "Yvar",
-                      choices = s_options,
-                      selected = s_options[[3]]
-    )
-    updateSelectInput(session, "IDvar",
-                      choices = s_options,
-                      selected = s_options[[4]]
-    )
-      
-    }
+  observe({
+    data <- theData()
+    updateSelectInput(session, 'Xvar', choices = names(data))
+    updateSelectInput(session, 'Yvar', choices = names(data))
+    updateSelectInput(session, 'IDvar', choices = names(data))
   })
     
-  output$read_file <- renderUI({
-    # unnamed function to create 'Read the data file' widget
-    #
-    # Args:
-    #   Takes no arguments
-    #
-    # Returns:
-    #   No explicit return. R automatically updates the list like object 'output'
-    
-    # function to create file upload control wizard
-#    update.file()
-    fileInput("the.file", label = "Read the data file", accept = c ('.csv', '.txt', '.sim', '.dat'))  
-    
-    
-  })
-  
-  output$choose_Xvar <- renderPrint({
-    # unnamed function to create 'Choose X variable' widget and read the uploaded file
-    #
-    # Args:
-    #   Takes no arguments
-    #
-    # Returns:
-    #   No explicit return. R automatically updates the list like object 'output'
-#    print("inside XVAR")
-    if (is.null(input$the.file)){
-      return()
-    }
-    # Call the ReadData method to read the field
-    the.data <<- ReadData(input$the.file$datapath)
-#    column.names <- colnames(the.data)
-    
-    # built in function to create a box with choices to select from
-#    selectInput("Xvar", "Choose X variable", choices = c(" ", column.names), selected = colnames(the.data)[[2]])
-    
-#   
-    
-  })
-  
-  output$choose_Yvar <- renderUI({
-    # unnamed function to create 'Choose Y variable' widget
-    #
-    # Args:
-    #   Takes no arguments
-    #
-    # Returns:
-    #   No explicit return. R automatically updates the list like object 'output'
-#     input$the.file
-#     update.file()
-    if (is.null(input$the.file))
-      return()
-    if (is.null(the.data)) { 
-      choice.temp <- c(" ", " ")
-    } else { 
-      choice.temp <- c(" ", colnames(the.data))
-    }
-    # built in function to create a box with choices to select from
-    selectInput("Yvar", "Choose Y variable", choices = choice.temp, selected = colnames(the.data)[[3]])
-  })
-  
-  output$choose_IDvar <- renderUI({
-    # unnamed function to create 'Choose ID variable' widget
-    #
-    # Args:
-    #   Takes no arguments
-    #
-    # Returns:
-    #   No explicit return. R automatically updates the list like object 'output'
-    
-#    update.file()
-    if (is.null(input$the.file))
-      return()
-    if (is.null(the.data)) { 
-      choice.temp <- c(" ", " ")
-    } else { 
-      choice.temp <- c(" ", colnames(the.data))
-    } 
-    # built in function to create a box with choices to select from
-    selectInput("IDvar", "Choose ID variable", choices = choice.temp, selected = colnames(the.data)[[4]] )
-  })
-  
-  output$choose_COVvar <- renderUI({
-    # unnamed function to create 'Choose Covariate for stratification' widget
-    #
-    # Args:
-    #   Takes no arguments
-    #
-    # Returns:
-    #   No explicit return. R automatically updates the list like object 'output'
-    
-    if (is.null(input$the.file))
-      return()
-    if (is.null(the.data)) { 
-      choice.temp <- c(" ", " ")
-    } else { 
-      choice.temp <- c(" ", colnames(the.data))
-    }    
-    # built in function to create a box with choices to select from
-    selectInput("COVvar", "Choose Covariate for stratification", choices  = choice.temp)
-  })
-  
-  output$choose_COVn <- renderUI({
-    # unnamed function to create 'Number of COV stratification' widget
-    #
-    # Args:
-    #   Takes no arguments
-    #
-    # Returns:
-    #   No explicit return. R automatically updates the list like object 'output'
-    
-    if(is.null(input$the.file) | is.null(the.data)) { 
-      return()
-    } else if(is.null(input$COVvar)) { 
-      return()
-    } else if(input$COVvar==" ") {  
-      return()
-    }
-    # built in function to create a field to enter numbers
-    numericInput("cov.num", "Number of COV stratification", 1)
-  })
-  
   output$summary <- renderPrint({
     
      summary(the.data)
     
   })
 
+  flex.data <- reactive({
+    data <- isolate(theData())
+    
+    if((input$Xvar=="Subject" | input$Xvar=="Wt"| input$Xvar=="Dose"| input$Xvar=="Time"| input$Xvar=="conc")
+      && (input$Yvar=="Subject" | input$Yvar=="Wt"| input$Yvar=="Dose"| input$Yvar=="Time"| input$Yvar=="conc") 
+      && (input$IDvar=="Subject" | input$IDvar=="Wt"| input$IDvar=="Dose"| input$IDvar=="Time"| input$IDvar=="conc")){
+      
+      if(is.null(data)){
+        print("main entry")
+        print("enter")
+          x.name <- input$Xvar
+           print(input$Xvar)
+          x.data <- Theoph[, x.name]
+                  y.name <- input$Yvar
+                  y.data <- Theoph[, y.name]
+                  id.name <- input$IDvar
+                  ID.t <- Theoph[, id.name]
+        data <- data.frame(x.data, y.data, ID.t)
+        #    names(new.data) <- c(x.name, y.name, ID.t)
+     #   print(new.data)
+      }
+      } else {
+        print("main entry1")
+        print("enter1")
+        x.name <- input$Xvar
+        print(input$Xvar)
+        x.data <- data[, x.name]
+        y.name <- input$Yvar
+        y.data <- data[, y.name]
+        id.name <- input$IDvar
+        ID.t <- data[, id.name]
+        data <- data.frame(x.data, y.data, ID.t)
+        #    names(new.data) <- c(x.name, y.name, ID.t)
+      #  print(new.data)
+      }
+      data
+  })
+
+
+  lb <- linked_brush(keys = 1:nrow(flex.data()), "deeppink")
+                
+  
+  flex.data %>%
+    ggvis(~x.data, ~y.data) %>%
+    add_axis("x", title = "x") %>%
+    add_axis("y", title = "y") %>%
+    layer_points(fill := lb$fill, fill.brush := "mediumblue", fill := "deeppink") %>%
+    lb$input()  %>%
+    layer_points(fill := "mediumblue", data = reactive(flex.data()[flex.data()$ID.t %in%
+                                                                     flex.data()[lb$selected(), ]$ID.t, ])) %>%
+    set_options(width = 500, height = 350) %>%
+    bind_shiny("ggvis_xy_plot")
+  
+  # Creating profile plot
+  selected <- lb$selected
+  new.data.selected <- reactive({
+    #    if (!any(selected())) return(layer_lines())
+    flex.data()[flex.data()$ID.t %in% flex.data()[lb$selected(), ]$ID.t, ]
+  })
+  #  
+  flex.data %>%
+    ggvis(~x.data, ~y.data) %>%
+    add_axis("x", title = "x") %>%
+    add_axis("y", title = "y") %>%
+    layer_points(fill := lb$fill, fill.brush := "mediumblue", fill := "deeppink") %>%
+    group_by(ID.t) %>%
+    layer_lines(stroke := "deeppink") %>% 
+    lb$input()  %>%
+    add_data(new.data.selected) %>%
+    layer_points(fill := "mediumblue") %>%
+    layer_lines(stroke := "mediumblue") %>%
+    set_options(width = 500, height = 350) %>%
+    bind_shiny("ggvis_profile_plot")
 
   output$ggvisplot_ui <- renderUI({
 
     flex.data <- reactive({
+      data <- isolate(theData())
+      
+      if(input$Xvar=="Wt" && input$Yvar=="Dose" && input$IDvar=="Time"){
+        
+        if(is.null(data)){
+          print("main entry")
+          print("enter")
+       #   x.name <- input$Xvar
+      #    print(input$Xvar)
+       #   x.data <- Theoph[, x.name]
+#           y.name <- input$Yvar
+#           y.data <- Theoph[, y.name]
+#           id.name <- input$IDvar
+#           ID.t <- Theoph[, id.name]
+          new.data <- data.frame(x.data = 0, y.data = 0, ID.t = 0)
+          #    names(new.data) <- c(x.name, y.name, ID.t)
+          print(new.data)
+        } else {
           print("main entry")
           print("enter")
           x.name <- input$Xvar
           print(input$Xvar)
-          x.data <- the.data[, x.name]
+          x.data <- data[, x.name]
           y.name <- input$Yvar
-          y.data <- the.data[, y.name]
+          y.data <- data[, y.name]
           id.name <- input$IDvar
-          ID.t <- the.data[, id.name]
+          ID.t <- data[, id.name]
           new.data <- data.frame(x.data, y.data, ID.t)
       #    names(new.data) <- c(x.name, y.name, ID.t)
           print(new.data)
-         })
+        }
+        new.data
+      }
+    })
         
     lb <- linked_brush(keys = 1:nrow(flex.data()), "deeppink")
-          
+    
     flex.data %>%
       ggvis(~x.data, ~y.data) %>%
       add_axis("x", title = "x") %>%
@@ -194,7 +158,7 @@ obs <-   observe({
       layer_points(fill := "mediumblue", data = reactive(flex.data()[flex.data()$ID.t %in%
                                                                       flex.data()[lb$selected(), ]$ID.t, ])) %>%
  #     set_options(width = 500, height = 350) %>%
-      bind_shiny("ggvis_xy_plot")
+      bind_shiny("ggvis_xy_plot", "ggvis_xy_ui")
       
     # Creating profile plot
      selected <- lb$selected
@@ -218,6 +182,7 @@ obs <-   observe({
     
   
     ggvisOutput("ggvis_xy_plot")
+    
   }) 
   
   
@@ -261,13 +226,21 @@ obs <-   observe({
           print(new.data)
         })
         
+        
+        
         # Creating the Residuals vs Fitted values plot
+          # Creating a data frame for adding the residual = 0 line
+          max_x <- max(df$fit)
+          min_x <- min(df$fit)
+          dat <- data.frame(fit = c(min_x, max_x), res = c(0, 0))
+        
         upload.data %>% 
           ggvis(~fit, ~res) %>% 
           add_axis("x", title = "Fitted values") %>%
           add_axis("y", title = "Standardized residuals") %>%
           layer_points() %>%
           set_options(width = 400, height = 300) %>%
+          layer_paths(stroke := "red", data = dat) %>%
           bind_shiny("res_fitted")
         
         # Creating the Predicted Values vs DV plot
